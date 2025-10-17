@@ -16,27 +16,9 @@ let chargesMatch = null
 
 const isInHotbar = (slot) => slot >= 0 && slot < 8
 
-editGui.onRender(() => {
-    Renderer.retainTransforms(true)
-    Renderer.translate(editGui.getX(), editGui.getY())
-    Renderer.scale(editGui.getScale())
-    Renderer.drawStringWithShadow(chargesText, 0, 0)
-    Renderer.retainTransforms(false)
-    Renderer.finishDraw()
-})
+function updateChargesText() {
+    if (!Player.getInventory()) return
 
-const thing = register("step", () => {
-    if (!World.isLoaded()) return
-    if (!data.firstInstall) return thing.unregister()
-
-    ChatLib.chat("&f[&aDB Display&f]\n&aUse command &6/dbmove &ato move the display\n&6/db &ato toggle the display")
-    data.firstInstall = false
-    data.save()
-
-    thing.unregister()
-}).setFps(1)
-
-register("step", () => {
     const dungbid = [278]
     dungbslot = Player.getInventory().getItems().findIndex(item => dungbid.includes(item?.getID()))
 
@@ -63,8 +45,35 @@ register("step", () => {
         chargesMatch = null
         chargesText = "&cNo Dungeobreaker found in your inventory"
     }
-}).setFps(0.2)
+}
 
+editGui.onRender(() => {
+    Renderer.retainTransforms(true)
+    Renderer.translate(editGui.getX(), editGui.getY())
+    Renderer.scale(editGui.getScale())
+    Renderer.drawStringWithShadow(chargesText, 0, 0)
+    Renderer.retainTransforms(false)
+    Renderer.finishDraw()
+})
+
+const thing = register("step", () => {
+    if (!World.isLoaded()) return
+    if (!data.firstInstall) return thing.unregister()
+
+    ChatLib.chat("&f[&aDB Display&f]\n&aUse command &6/dbmove &ato move the display\n&6/db &ato toggle the display")
+    data.firstInstall = false
+    data.save()
+
+    thing.unregister()
+}).setFps(1)
+
+// run updates every 5s
+register("step", updateChargesText).setFps(0.2)
+
+// also trigger once after world load (fixes the /ct load issue)
+register("worldLoad", () => {
+    setTimeout(updateChargesText, 1000)
+})
 
 register("renderOverlay", () => {
     if (!data.toggled || !Dungeon.inDungeon) return
