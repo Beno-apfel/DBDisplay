@@ -1,0 +1,8 @@
+{
+  "name": "DBDisplay",
+  "creator": "Beno",
+  "description": "dungeonbreaker charge display",
+  "version": "1.0.0",
+  "entry": "index.js",
+  "requires": ["Atomx", "PogData", "BloomCore"]
+}
