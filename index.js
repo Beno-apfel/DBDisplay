@@ -1,10 +1,14 @@
 import PogObject from "PogData"
 import { DraggableGui } from "../Atomx/draggable/DraggableGui"
 import Dungeon from "../BloomCore/Dungeons/Dungeon";
+import Settings from "./config";
+
+register("command", () => {
+    Settings.openGUI()
+}).setName("db").setAliases(["dungeonbreakerdisplay", "dbd"])
 
 const data = new PogObject("DBDisplay", {
     pos: { x: 0, y: 0, scale: 1 },
-    toggled: true,
     firstInstall: true
 })
 
@@ -15,6 +19,7 @@ let dungbslot = -1
 let chargesMatch = null
 
 const isInHotbar = (slot) => slot >= 0 && slot < 8
+const pickaxe = new Item("diamond_pickaxe");
 
 function updateChargesText() {
     if (!Player.getInventory()) return
@@ -24,7 +29,7 @@ function updateChargesText() {
 
     if (dungbslot === -1 || !isInHotbar(dungbslot)) {
         chargesMatch = null
-        chargesText = "&cNo Dungeobreaker found\n &cin your inventory"
+        chargesText = "&cNo Dungeobreaker found\n&cin your inventory"
         return
     }
 
@@ -37,13 +42,13 @@ function updateChargesText() {
             let color = "&c"
             if (charges > 15) color = "&a"
             else if (charges > 7) color = "&e"
-            chargesText = `&fCharges:\n${color}${charges}/20`
+            chargesText = `${color}${charges}/20`
         } else {
             chargesText = "&cUnable to read charges"
         }
     } else {
         chargesMatch = null
-        chargesText = "&cNo Dungeobreaker found in your inventory"
+        chargesText = "&cNo Dungeobreaker found\nin your inventory"
     }
 }
 
@@ -51,7 +56,13 @@ editGui.onRender(() => {
     Renderer.retainTransforms(true)
     Renderer.translate(editGui.getX(), editGui.getY())
     Renderer.scale(editGui.getScale())
-    Renderer.drawStringWithShadow(chargesText, 0, 0)
+    if (!Settings.prefix) {
+    Renderer.drawStringWithShadow("&fCharges:", 0, 0)}
+    if (Settings.icon) {
+    pickaxe.draw(-2, 8);
+    Renderer.drawStringWithShadow(chargesText, 18, 4)}
+    else {
+    Renderer.drawStringWithShadow(chargesText, 0, 10)}
     Renderer.retainTransforms(false)
     Renderer.finishDraw()
 })
@@ -60,7 +71,7 @@ const thing = register("step", () => {
     if (!World.isLoaded()) return
     if (!data.firstInstall) return thing.unregister()
 
-    ChatLib.chat("&f[&aDB Display&f]\n&aUse command &6/dbmove &ato move the display\n&6/db &ato toggle the display")
+    ChatLib.chat("&f[&aDB Display&f]\n&aUse command &6/db to open the config")
     data.firstInstall = false
     data.save()
 
@@ -76,26 +87,19 @@ register("worldLoad", () => {
 })
 
 register("renderOverlay", () => {
-    if (!data.toggled || !Dungeon.inDungeon) return
+    if (!Settings.toggle || !Dungeon.inDungeon) return
     if (!World.isLoaded() || editGui.isOpen()) return
 
     Renderer.retainTransforms(true)
     Renderer.translate(editGui.getX(), editGui.getY())
     Renderer.scale(editGui.getScale())
-    Renderer.drawStringWithShadow(chargesText, 0, 0)
+    if (!Settings.prefix) {
+    Renderer.drawStringWithShadow("&fCharges:", 0, 0)}
+    if (Settings.icon) {
+    pickaxe.draw(-2, 8);
+    Renderer.drawStringWithShadow(chargesText, 18, 4)}
+    else {
+    Renderer.drawStringWithShadow(chargesText, 0, 10)}
     Renderer.retainTransforms(false)
     Renderer.finishDraw()
 })
-
-register("command", (...args) => {
-  switch(args[0]) {
-    case "toggle":
-      data.toggled = !data.toggled;
-      data.save();
-      ChatLib.chat(`&f[&aDB Display&f] &fis now ${data.toggled ? "&aenabled" : "&cdisabled"}`);
-      break;
-    default:
-      ChatLib.chat(`&f[&aDB Display&f]\n&aUse command &6/dbdmove &ato move the display\n&6/db toggle &ato toggle the display`);
-      break;
-  }
-}).setName("dbd").setAliases(["db"]);

@@ -1,0 +1,9 @@
+
+[general]
+	hide_prefix = true
+	show_icon = true
+	toggle_display = true
+
+[dungeon]
+	automatically_close_secrets = false
+
